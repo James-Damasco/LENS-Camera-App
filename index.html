@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400..800&display=swap"
+        rel="stylesheet">
+    <link href="style.css" rel="stylesheet" />
+    <title>LENS - AI Camera</title>
+
+</head>
+
+<body>
+    <h2 class="sr-only">LENS AI Camera — a full-featured browser camera application</h2>
+
+    <!-- ================================================================
+     SPLASH SCREEN
+     ================================================================ -->
+    <div id="splash" class="screen active">
+        <div class="splash-logo">
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                <circle cx="22" cy="22" r="10" stroke="#00f0ff" stroke-width="2" />
+                <circle cx="22" cy="22" r="4" fill="#00f0ff" />
+                <path d="M14 12h4l2-4h4l2 4h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z"
+                    stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none" />
+            </svg>
+        </div>
+        <div class="splash-name">LENS</div>
+        <div class="splash-tagline">AI · Camera · Studio</div>
+        <div class="splash-loader">
+            <div class="splash-bar"></div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+     PERMISSION SCREEN
+     ================================================================ -->
+    <div id="permission" class="screen">
+        <div class="perm-icon">📷</div>
+        <div class="perm-title">Camera Access</div>
+        <p class="perm-desc">LENS needs permission to access your camera and microphone to capture photos and videos.
+        </p>
+        <button class="btn-primary" id="permBtn">Grant Permission</button>
+        <p style="font-size:12px;color:var(--text3);margin-top:8px;">Your media stays on your device</p>
+    </div>
+
+    <!-- ================================================================
+     CAMERA SCREEN
+     ================================================================ -->
+    <div id="camera" class="screen">
+
+        <!-- Viewfinder -->
+        <div id="viewfinder">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="faceCanvas"></canvas>
+            <div id="gridOverlay">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="33.3" y1="0" x2="33.3" y2="100" stroke="rgba(255,255,255,0.3)" stroke-width="0.3" />
+                    <line x1="66.7" y1="0" x2="66.7" y2="100" stroke="rgba(255,255,255,0.3)" stroke-width="0.3" />
+                    <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="rgba(255,255,255,0.3)" stroke-width="0.3" />
+                    <line x1="0" y1="66.7" x2="100" y2="66.7" stroke="rgba(255,255,255,0.3)" stroke-width="0.3" />
+                </svg>
+            </div>
+            <div class="focus-ring" id="focusRing"></div>
+            <div id="shutterFlash"></div>
+            <div id="zoomBadge">1.0×</div>
+            <div id="countdownOverlay"><span class="countdown-num" id="countdownNum"></span></div>
+        </div>
+
+        <!-- Recording Indicator -->
+        <div id="recIndicator"><span id="recDot"></span><span id="recTime">00:00</span></div>
+
+        <!-- AI Badge -->
+        <div id="aiBadge">AI · FACE DETECT</div>
+
+        <!-- Header -->
+        <div id="camHeader">
+            <div class="cam-header-group">
+                <button class="hdr-btn" id="flashBtn" title="Flash" aria-label="Flash">⚡</button>
+                <button class="hdr-btn" id="gridBtn" title="Grid" aria-label="Toggle grid">⊞</button>
+                <button class="hdr-btn" id="timerBtn" title="Timer" aria-label="Timer">⏱</button>
+            </div>
+            <span id="modeLabel">PHOTO</span>
+            <div class="cam-header-group">
+                <button class="hdr-btn" id="aiBtn" title="AI Face Detect" aria-label="AI">✦</button>
+                <button class="hdr-btn" id="proBtn" title="Pro Controls" aria-label="Pro">PRO</button>
+                <button class="hdr-btn" id="settingsBtn" title="Settings" aria-label="Settings">⚙</button>
+            </div>
+        </div>
+
+        <!-- Zoom Controls -->
+        <div id="zoomControls">
+            <button class="zoom-btn" id="zoomInBtn" aria-label="Zoom in">+</button>
+            <span id="zoomLevel">1×</span>
+            <button class="zoom-btn" id="zoomOutBtn" aria-label="Zoom out">−</button>
+        </div>
+
+        <!-- Exposure Slider -->
+        <div id="exposureSlider">
+            <span class="exp-icon">☀</span>
+            <input type="range" id="expRange" min="-100" max="100" value="0" aria-label="Exposure">
+            <span class="exp-icon" style="opacity:.4">☀</span>
+        </div>
+
+        <!-- Filter Strip -->
+        <div id="filterStrip">
+            <div class="filter-row" id="filterRow"></div>
+            <div id="intensityBar">
+                <span>EFFECT</span>
+                <input type="range" id="intensitySlider" min="0" max="100" value="100" aria-label="Filter intensity">
+                <span id="intensityVal">100</span>
+            </div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div id="camControls">
+            <div id="galleryThumb" role="button" aria-label="Open gallery" tabindex="0">
+                <div class="empty-gallery">🖼</div>
+            </div>
+            <div id="shutterBtn" role="button" aria-label="Take photo" tabindex="0">
+                <div class="shutter-outer">
+                    <div class="shutter-inner"></div>
+                </div>
+            </div>
+            <button id="flipBtn" aria-label="Flip camera">🔄</button>
+        </div>
+
+        <!-- Mode Strip -->
+        <div id="modeStrip" role="tablist">
+            <div class="mode-tab active" data-mode="photo" role="tab">PHOTO</div>
+            <div class="mode-tab" data-mode="video" role="tab">VIDEO</div>
+            <div class="mode-tab" data-mode="portrait" role="tab">PORTRAIT</div>
+            <div class="mode-tab" data-mode="night" role="tab">NIGHT</div>
+            <div class="mode-tab" data-mode="qr" role="tab">SCAN</div>
+        </div>
+
+    </div>
+
+    <!-- ================================================================
+     GALLERY SCREEN
+     ================================================================ -->
+    <div id="gallery" class="screen">
+        <div class="gallery-header">
+            <div class="gallery-title">Gallery</div>
+            <div class="gallery-actions">
+                <button class="icon-btn" id="galleryCloseBtn" aria-label="Close gallery">✕</button>
+            </div>
+        </div>
+        <div class="gallery-tabs">
+            <div class="gtab active" data-gtab="all">All</div>
+            <div class="gtab" data-gtab="photos">Photos</div>
+            <div class="gtab" data-gtab="videos">Videos</div>
+            <div class="gtab" data-gtab="favorites">Favorites ♥</div>
+        </div>
+        <div id="galleryGrid"></div>
+    </div>
+
+    <!-- ================================================================
+     VIEWER SCREEN
+     ================================================================ -->
+    <div id="viewer" class="screen">
+        <div class="viewer-header">
+            <button class="icon-btn" id="viewerBackBtn" aria-label="Back">←</button>
+            <span id="viewerTitle" style="font-size:14px;color:var(--text2);">Photo</span>
+            <div class="viewer-actions">
+                <button class="icon-btn" id="viewerFavBtn" aria-label="Favorite">♡</button>
+                <button class="icon-btn" id="viewerEditBtn" aria-label="Edit">✏</button>
+                <button class="icon-btn" id="viewerShareBtn" aria-label="Share">↑</button>
+            </div>
+        </div>
+        <div id="viewerContent"></div>
+        <div class="viewer-footer">
+            <button class="viewer-btn" id="viewerDownloadBtn">⬇ Save</button>
+            <button class="viewer-btn danger" id="viewerDeleteBtn">🗑 Delete</button>
+        </div>
+    </div>
+
+    <!-- ================================================================
+     EDITOR SCREEN
+     ================================================================ -->
+    <div id="editor" class="screen">
+        <div class="editor-header">
+            <button class="icon-btn" id="editorBackBtn" aria-label="Back">←</button>
+            <span class="editor-title">Edit</span>
+            <div class="editor-actions">
+                <button class="icon-btn" id="editorUndoBtn" aria-label="Undo" title="Undo">↩</button>
+                <button class="icon-btn" id="editorResetBtn" aria-label="Reset" title="Reset">↺</button>
+                <button class="icon-btn"
+                    style="background:rgba(0,240,255,0.2);border-color:var(--border2);color:var(--accent)"
+                    id="editorSaveBtn" aria-label="Save">✓</button>
+            </div>
+        </div>
+        <canvas id="editorCanvas" aria-label="Photo editor canvas"></canvas>
+        <div class="editor-tools">
+            <div class="editor-tool-tabs">
+                <div class="etab active" data-etab="adjust">Adjust</div>
+                <div class="etab" data-etab="filter">Filter</div>
+                <div class="etab" data-etab="crop">Crop</div>
+                <div class="etab" data-etab="stickers">Stickers</div>
+                <div class="etab" data-etab="text">Text</div>
+            </div>
+            <div class="editor-panel" id="editorPanel"></div>
+        </div>
+    </div>
+
+    <!-- ================================================================
+     SETTINGS SCREEN
+     ================================================================ -->
+    <div id="settings" class="screen">
+        <div class="settings-header">
+            <button class="back-btn" id="settingsBackBtn" aria-label="Back">←</button>
+            <div class="settings-title">Settings</div>
+        </div>
+        <div class="settings-body">
+            <div class="settings-section">
+                <div class="settings-section-title">Camera</div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Save Location</span><small>Save photos with GPS data</small></div>
+                    <div class="toggle" id="toggleGeo"></div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Sound Effects</span><small>Shutter click sound</small></div>
+                    <div class="toggle on" id="toggleSound"></div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Mirror Front Camera</span><small>Flip selfie preview</small></div>
+                    <div class="toggle on" id="toggleMirror"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <div class="settings-section-title">AI Features</div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Face Detection</span><small>Real-time AI face detection</small>
+                    </div>
+                    <div class="toggle on" id="toggleAI"></div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Beauty Filter</span><small>Auto skin enhancement</small></div>
+                    <div class="toggle" id="toggleBeauty"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <div class="settings-section-title">About</div>
+                <div class="setting-row">
+                    <div class="setting-label"><span>Version</span><small>LENS AI Camera</small></div>
+                    <span style="color:var(--text3);font-size:13px;">1.0.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" aria-live="polite"></div>
+</body>
+<script src="js/App.js" type="module"></script>
+<script src="js/sw.js" type="module"></script>
+
+</html>
